@@ -12,12 +12,11 @@ import warnings
 
 from .baseline import rescale
 from .channels.channels import (ContainsMixin, PickDropChannelsMixin,
-                                SetChannelsMixin, InterpolationMixin,
-                                equalize_channels)
-from .filter import resample, detrend, FilterMixin
+                                SetChannelsMixin, InterpolationMixin)
+from .filter import resample, detrend
 from .fixes import in1d
 from .utils import (_check_pandas_installed, check_fname, logger, verbose,
-                    object_hash, deprecated)
+                    object_hash)
 from .viz import plot_evoked, plot_evoked_topomap, _mutable_defaults
 from .viz import plot_evoked_field
 from .viz import plot_evoked_image
@@ -247,8 +246,8 @@ class Evoked(ProjMixin, ContainsMixin, PickDropChannelsMixin,
                                  ' %d)' % (all_data.shape[1], nsamp))
 
         # Calibrate
-        cals = np.array([info['chs'][k]['cal'] *
-                         info['chs'][k].get('scale', 1.0)
+        cals = np.array([info['chs'][k]['cal']
+                         * info['chs'][k].get('scale', 1.0)
                          for k in range(info['nchan'])])
         all_data *= cals[:, np.newaxis]
 
@@ -267,6 +266,7 @@ class Evoked(ProjMixin, ContainsMixin, PickDropChannelsMixin,
 
         # bind info, proj, data to self so apply_proj can be used
         self.data = all_data
+        self.proj = False
         if proj:
             self.apply_proj()
         # Run baseline correction
@@ -941,6 +941,7 @@ def _get_evoked_node(fname):
     return evoked_node
 
 
+<<<<<<< HEAD
 def grand_average(all_evoked, interpolate_bads='eeg'):
     """Make grand average of a list evoked data
 
@@ -997,6 +998,45 @@ def grand_average(all_evoked, interpolate_bads='eeg'):
 
 @deprecated('merge_evoked is deprecated and will be removed in 0.10. Please '
             'use combine_evoked instead')
+||||||| merged common ancestors
+=======
+def grand_average(all_evokeds, keep_channels=True):
+    """Make grand average of a list evoked data
+
+    The grand average will have the same amount of channels
+
+    Parameters
+    ----------
+    all_evoked : list of Evoked data
+        The evoked datasets
+    keep_channels : bool
+        If True the original evokeds will be untouched, if False
+        equalize_channels will be applied to the original evoked data.
+        Defaults to True.
+
+    Returns
+    -------
+    gave : Evoked
+        the grand average file
+    """
+    # check if all elements in the given list are evoked data
+    if not all(isinstance(evk, Evoked) for evk in all_evokeds):
+        raise ValueError("Not all the elements in list are evoked data")
+
+    # keep_channels parameter
+    if keep_channels is True:
+        tmpList = deepcopy(all_evokeds)
+    else:
+        tmpList = all_evokeds
+
+    equalize_channels(tmpList)  # apply equalize_channels
+    gave = merge_evoked(tmpList)  # make gave object using merge_evoked
+    # change comment field
+    gave.comment = "Grand average of %d evoked files" % len(all_evokeds)
+    return gave
+
+
+>>>>>>> added grand_average to evoked.py
 def merge_evoked(all_evoked):
     """Merge/concat evoked data
 
