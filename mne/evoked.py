@@ -1003,8 +1003,8 @@ def grand_average(all_evoked, interpolate_bads='eeg'):
 def grand_average(all_evokeds, keep_channels=True):
     """Make grand average of a list evoked data
 
-    The grand average will only contain the channels that there marked good
-    in all of the evoked dataset.
+    The grand average file will only contain the channels that are marked good
+    in all of the evoked datasets.
 
     Parameters
     ----------
