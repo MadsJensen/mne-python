@@ -15,9 +15,17 @@ from numpy.testing import (assert_array_almost_equal, assert_equal,
                            assert_array_equal, assert_allclose)
 from nose.tools import assert_true, assert_raises, assert_not_equal
 
+<<<<<<< HEAD
 from mne import (equalize_channels, pick_types, read_evokeds, write_evokeds,
                  grand_average, combine_evoked)
 from mne.evoked import _get_peak, EvokedArray, merge_evoked
+||||||| merged common ancestors
+from mne import equalize_channels, pick_types, read_evokeds, write_evokeds
+from mne.evoked import _get_peak, EvokedArray
+=======
+from mne import equalize_channels, pick_types, read_evokeds, write_evokeds
+from mne.evoked import _get_peak, EvokedArray, grand_average
+>>>>>>> added test for evoked grand average function
 from mne.epochs import EpochsArray
 
 from mne.utils import _TempDir, requires_pandas, requires_nitime, slow_test
@@ -356,66 +364,21 @@ def test_equalize_channels():
         assert_equal(ch_names, e.ch_names)
 
 
-def test_evoked_arithmetic():
-    """Test evoked arithmetic
+def test_grand_average():
+    """Test grand average
     """
-    ev = read_evokeds(fname, condition=0)
-    ev1 = EvokedArray(np.ones_like(ev.data), ev.info, ev.times[0], nave=20)
-    ev2 = EvokedArray(-np.ones_like(ev.data), ev.info, ev.times[0], nave=10)
-
-    # combine_evoked([ev1, ev2]) should be the same as ev1 + ev2:
-    # data should be added according to their `nave` weights
-    # nave = ev1.nave + ev2.nave
-    ev = ev1 + ev2
-    assert_equal(ev.nave, ev1.nave + ev2.nave)
-    assert_allclose(ev.data, 1. / 3. * np.ones_like(ev.data))
-    ev = ev1 - ev2
-    assert_equal(ev.nave, ev1.nave + ev2.nave)
-    assert_equal(ev.comment, ev1.comment + ' - ' + ev2.comment)
-    assert_allclose(ev.data, np.ones_like(ev1.data))
-    with warnings.catch_warnings(record=True) as w:
-        warnings.simplefilter('always')
-        ev = merge_evoked([ev1, ev2])
-    assert_true(len(w) >= 1)
-    assert_allclose(ev.data, 1. / 3. * np.ones_like(ev.data))
-
-    # default comment behavior if evoked.comment is None
-    old_comment1 = ev1.comment
-    old_comment2 = ev2.comment
-    ev1.comment = None
-    with warnings.catch_warnings(record=True) as w:
-        warnings.simplefilter('always')
-        ev = ev1 - ev2
-        assert_equal(ev.comment, 'unknown')
-    ev1.comment = old_comment1
-    ev2.comment = old_comment2
-
-    # equal weighting
-    ev = combine_evoked([ev1, ev2], weights='equal')
-    assert_allclose(ev.data, np.zeros_like(ev1.data))
-
-    # combine_evoked([ev1, ev2], weights=[1, 0]) should yield the same as ev1
-    ev = combine_evoked([ev1, ev2], weights=[1, 0])
-    assert_equal(ev.nave, ev1.nave)
-    assert_allclose(ev.data, ev1.data)
-
-    # simple subtraction (like in oddball)
-    ev = combine_evoked([ev1, ev2], weights=[1, -1])
-    assert_allclose(ev.data, 2 * np.ones_like(ev1.data))
-
-    assert_raises(ValueError, combine_evoked, [ev1, ev2], weights='foo')
-    assert_raises(ValueError, combine_evoked, [ev1, ev2], weights=[1])
-
-    # grand average
-    evoked1, evoked2 = read_evokeds(fname, condition=[0, 1], proj=True)
+    evoked1 = read_evokeds(fname, condition=0, proj=True)
+    evoked2 = evoked1.copy()
     ch_names = evoked1.ch_names[2:]
-    evoked1.info['bads'] = ['EEG 008']  # test interpolation
     evoked1.drop_channels(evoked1.ch_names[:1])
     evoked2.drop_channels(evoked2.ch_names[1:2])
-    gave = grand_average([evoked1, evoked2])
-    assert_equal(gave.data.shape, [len(ch_names), evoked1.data.shape[1]])
-    assert_equal(ch_names, gave.ch_names)
-    assert_equal(gave.nave, 2)
+    evoked1.nave = 2
+    evoked2.nave = 4
+    my_comparison = [evoked1, evoked2]
+    avg_nave = (evoked1.nave + evoked2.nave) / len(my_comparison)
+    grand_average(my_comparison)
+    assert_equal(ch_names, grand_average.ch_names)
+    assert_equal(avg_nave, grand_average.nave)
 
 
 def test_array_epochs():
