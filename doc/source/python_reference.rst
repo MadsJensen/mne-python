@@ -445,7 +445,6 @@ Sensor Space Data
    pick_types
    pick_types_evoked
    pick_types_forward
-   read_ch_connectivity
    read_epochs
    read_reject_parameters
    read_selection
@@ -622,7 +621,6 @@ Source Space Data
    :toctree: generated/
    :template: function.rst
 
-   collect_transforms
    compute_morph_matrix
    extract_label_time_course
    grade_to_tris
