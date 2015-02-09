@@ -11,8 +11,9 @@ import numpy as np
 import warnings
 
 from .baseline import rescale
-from .channels.channels import (ContainsMixin, PickDropChannelsMixin,
-                                SetChannelsMixin, InterpolationMixin)
+from .channels.channels import (ContainsMixin, equalize_channels,
+                                PickDropChannelsMixin, SetChannelsMixin,
+                                InterpolationMixin)
 from .filter import resample, detrend
 from .fixes import in1d
 from .utils import (_check_pandas_installed, check_fname, logger, verbose,
@@ -943,6 +944,7 @@ def _get_evoked_node(fname):
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 def grand_average(all_evoked, interpolate_bads='eeg'):
     """Make grand average of a list evoked data
 
@@ -1007,6 +1009,11 @@ def grand_average(all_evokeds, keep_channels=True):
 =======
 def grand_average(all_evokeds):
 >>>>>>> Removed keep_channel param
+||||||| merged common ancestors
+def grand_average(all_evokeds):
+=======
+def grand_average(all_evokeds, interpolate_bads='None'):
+>>>>>>> updated grand_average
     """Make grand average of a list evoked data
 
     The grand average file will only contain the channels that are marked good
@@ -1018,6 +1025,12 @@ def grand_average(all_evokeds):
     ----------
     all_evoked : list of Evoked data
         The evoked datasets.
+    interpolate_bads : string
+        Interpolate bad channels. If 'None' the grand average file will only
+        contain the channels that are marked good in all of the evoked
+        datasets. If 'EEG' the bad EEG channels will be interpolated.
+        Interpolation presently ONLY works for EEG.
+        Defaults to 'None'
 
     Returns
     -------
@@ -1036,7 +1049,15 @@ def grand_average(all_evokeds):
     for evk in tmp_list:
         evk.nave = average_nave
 
-    equalize_channels(tmp_list)  # apply equalize_channels
+    # Interpolation parameter
+    if interpolate_bads == 'None':
+        equalize_channels(tmp_list)  # apply equalize_channels
+    # elif interpolate_bads == 'EEG':
+        # TODO
+        #  use interpolate_bads from mne.channels.interpolation
+        #  to interpolate bad EEG channels before equalizing MEG
+        #  channels.
+
     # make grand_average object using merge_evoked
     grand_average = merge_evoked(tmp_list)
     # change the grand_average.nave to the number of Evokeds
